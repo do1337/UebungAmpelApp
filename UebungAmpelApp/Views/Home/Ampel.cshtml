@@ -1,0 +1,103 @@
+﻿@{
+    ViewData["Title"] = "Übung Ampel";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>Simulation einer Ampelschaltung.</p>
+
+<div id="ampel">
+    <div>
+        <div id="red" class="light red"></div>
+        <div id="yellow" class="light"></div>
+        <div id="green" class="light"></div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        // Starte die Funktion: aktualisiere die Ampelzustände alle 3 Sekunden
+        setInterval(switchAmpel, 3000);
+    });
+
+    function switchAmpel(light) {
+        var light = '';
+        
+        // aktuellen Zustand der Ampel ermitteln
+        if ($('.light.red').length && !$('.light.yellow').length) {
+            light = 'red';
+            debugger;
+        }
+        else if ($('.light.red').length && $('.light.yellow').length) {
+            light = 'red-yellow';
+            debugger;
+        }
+        else if ($('.light.green').length) {
+            light = 'green';
+            debugger;
+        }
+        else if ($('.light.yellow').length) {
+            light = 'yellow';
+            debugger;
+        }
+
+        // Ampel anhand des aktuellen Zustandes umschalten
+        $.ajax({
+            method: "GET",
+            cache: false,
+            url: "@Url.Action("SwitchAmpel", "Home")",
+            data: {
+                currentLight: light
+            },
+            contentType: "application/json; charset=UTF-8",
+            dataType: "json",
+            success: setAmpelData,
+            error: ajaxError
+        });
+    }
+
+    function setAmpelData(data, textStatus, jqXHR) {
+        console.info(data);
+
+        var redLight = $('#red');
+        var yellowLight = $('#yellow');
+        var greenLight = $('#green');
+
+        // aktueller Zustand rot?
+        if (data.nextLight == 'red') {
+            setTimeout(function () {
+                redLight.addClass('red');
+                yellowLight.removeClass('yellow');
+                greenLight.removeClass('green');
+            }, 1);
+        }
+        // aktueller Zustand rot-gelb?
+        else if (data.nextLight == 'red-yellow') {
+            setTimeout(function () {
+                redLight.addClass('red');
+                yellowLight.addClass('yellow');
+                greenLight.removeClass('green');
+            }, 1);
+        }
+        // aktueller Zustand grün?
+        else if (data.nextLight == 'green') {
+            setTimeout(function () {
+                redLight.removeClass('red');
+                yellowLight.removeClass('yellow');
+                greenLight.addClass('green');
+            }, 1);
+        }
+        // aktueller Zustand gelb?
+        else if (data.nextLight == 'yellow') {
+            setTimeout(function () {
+                redLight.removeClass('red');
+                yellowLight.addClass('yellow');
+                greenLight.removeClass('green');
+            }, 1);
+        }
+    }
+
+    function ajaxError(jqXHR, textStatus, errorThrown) {
+        console.error('Error!\n'
+            + 'Statustext: ' + textStatus
+            + (errorThrown !== '' ? '\nThrown error: ' + errorThrown : ''));
+    }
+</script>
